@@ -73,10 +73,10 @@ template <uint32_t Iter> struct pack<32, Iter> {
     {28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0} 
 */
 
-template <int TotalBits, int Bits, int... Rest>
+template <uint32_t TotalBits, uint32_t Bits, uint32_t... Rest>
 struct s16pack_ {
-  static const int UsedBits = 28 - TotalBits;
-  static const int RemainBits = TotalBits - Bits;
+  static const uint32_t UsedBits = 28 - TotalBits;
+  static const uint32_t RemainBits = TotalBits - Bits;
   static int f(const uint32_t *p, uint32_t& w, int left, int count) {
     if (left == 0) 
       return count;
@@ -93,9 +93,9 @@ struct s16pack_ {
   }
 };
 
-template <int Bits>
+template <uint32_t Bits>
 struct s16pack_<Bits, Bits> {
-  static const int UsedBits = 28 - Bits;
+  static const uint32_t UsedBits = 28 - Bits;
   static int f(const uint32_t *p, uint32_t& w, int left, int count) {
     if (left == 0)
       return count;
@@ -111,7 +111,7 @@ struct s16pack_<Bits, Bits> {
   }
 };
 
-template <int... Is> struct s16pack: public s16pack_<28, Is...>{};
+template <uint32_t... Is> struct s16pack: public s16pack_<28, Is...>{};
 }
 
 int Simple16::encode(const uint32_t *in, uint32_t *out, int size)
@@ -264,7 +264,7 @@ int PForDelta::encode(const uint32_t *in, uint32_t *out)
 
         auto w = out + 1;
         std::fill(w, w+size, 0);
-        auto packer = kPackers[bits_idx + 2];
+        auto& packer = kPackers[bits_idx + 2];
         for (auto p = tmp; p < tmp + kBlockSize; p += 32, w += bits) 
           packer(p, w);
 
@@ -299,7 +299,7 @@ int PForDelta::decode(const uint32_t *in, uint32_t *out)
 
     auto p = in + 1;
     auto w = out;
-    auto unpacker = kUnpackers[bits_idx];
+    auto& unpacker = kUnpackers[bits_idx];
     int size = (bits * kBlockSize) / 32;
     for (; p < in + 1 + size; p += bits, w += 32) 
       unpacker(p, w);
@@ -343,30 +343,45 @@ int PForDelta::decode(const uint32_t *in, uint32_t *out)
 #include <stdio.h>
 #include <time.h>
 
+// g++  -Ofast -std=c++11 -DPFOR_TEST -o pfor pfor.cc
 int main(int, const char *[])
 {
   std::vector<uint32_t> x(128), y(128 + 128), z(129);
   for (int i=0; i<x.size(); ++i) x[i] = rand() & 0xfff;
+  x[10] = x[50] = x[100] = 1000000;
 
-  const size_t N = 1; //1000 * 1000 * 20;
+  const size_t N = 1000 * 1000;
+  int n = 0;
   time_t t0 = time(NULL);
-  int x1, x2;
   for (size_t i = 0; i<N; ++i) 
-    x1 = Simple16::encode(x.data(), y.data(), x.size());
-//    x1 = PForDelta::encode(x.data(), y.data());
+    n = Simple16::encode(x.data(), y.data(), x.size());
   time_t t1 = time(NULL);
-  printf("encode time: %ld, ints used %d\n", t1 - t0, x1);
+  printf("s16 encode time: %ld, ints used %d\n", t1 - t0, n);
 
 
   for (size_t i = 0; i<N; ++i) 
-    x2 = Simple16::decode(y.data(), z.data(), x.size());
-//    x2 = PForDelta::decode(y.data(), z.data());
+    n = Simple16::decode(y.data(), z.data(), x.size());
   time_t t2 = time(NULL);
-  printf("decode time: %ld, ints used %d\n", t2 - t1, x2);
+  printf("s16 decode time: %ld, ints used %d\n", t2 - t1, n);
 
   for (int i=0; i<x.size(); ++i) {
     if (x[i] != z[i]) 
-    printf("failed: i=%d x=%u z=%u\n", i, x[i], z[i]);
+    printf("s16 test failed: i=%d x=%u z=%u\n", i, x[i], z[i]);
+  }
+
+  for (size_t i = 0; i<N; ++i) 
+    n = PForDelta::encode(x.data(), y.data());
+  time_t t3 = time(NULL);
+  printf("pfor decode time: %ld, ints used %d\n", t3 - t2, n);
+
+  for (size_t i = 0; i<N; ++i) 
+    n = PForDelta::decode(y.data(), z.data());
+  time_t t4 = time(NULL);
+  printf("pfor decode time: %ld, ints used %d\n", t4 - t3, n);
+
+  for (int i=0; i<x.size(); ++i) {
+    if (x[i] != z[i]) 
+    printf("pfor test failed: i=%d x=%u z=%u\n", i, x[i], z[i]);
   }
 
   return 0;
