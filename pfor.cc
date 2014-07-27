@@ -9,7 +9,7 @@
 
 namespace {
 
-//pack with the same size (at most 32 items)
+//pack with the same size (32 items)
 template <uint32_t Bits, uint32_t Iter = 32> struct pack 
 {
   static const uint32_t Mask = (1 << Bits) - 1;

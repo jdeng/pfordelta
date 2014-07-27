@@ -1,4 +1,4 @@
 pfordelta
 =========
 
-PForDelta and S16 with C++ templates (not fully testing)
+PForDelta and S16 with C++ 11 templates (not fully tested)
