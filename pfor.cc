@@ -101,12 +101,12 @@ struct s16pack_<Bits, Bits> {
       return count;
     if (*p >= (1 << Bits))
       return -1;
-    w += *p & ((1 << UsedBits) - 1);
+    w += (*p << UsedBits);
     return count + 1;
   }
 
   static int g(uint32_t p, uint32_t *w, int count) { 
-  *w = p & ((1 <<Bits) - 1);
+  *w = (p >> UsedBits) & ((1 <<Bits) - 1);
   return count + 1; 
   }
 };
@@ -142,6 +142,7 @@ int Simple16::encode(const uint32_t *in, uint32_t *out, int size)
     int m = -1;
     for (size_t i=0; i<16; ++i) {
       auto& packer = kPackers[i];
+      *w = i << 28;
       int ret = packer(p, *w, left, 0);
       if (ret > 0) {
         m = ret;
