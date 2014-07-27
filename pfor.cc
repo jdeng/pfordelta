@@ -148,6 +148,8 @@ int Simple16::encode(const uint32_t *in, uint32_t *out, int size)
         break;
       }
     }
+    if (m < 0) return -1;
+
     left -= m;
     p += m;
     w ++;
@@ -343,19 +345,21 @@ int PForDelta::decode(const uint32_t *in, uint32_t *out)
 int main(int, const char *[])
 {
   std::vector<uint32_t> x(128), y(128 + 128), z(129);
-  for (int i=0; i<x.size(); ++i) x[i] = rand() & 0xfffff;
+  for (int i=0; i<x.size(); ++i) x[i] = rand() & 0xfff;
 
-  const size_t N = 1000 * 1000 * 20;
+  const size_t N = 1; //1000 * 1000 * 20;
   time_t t0 = time(NULL);
   int x1, x2;
   for (size_t i = 0; i<N; ++i) 
-    x1 = PForDelta::encode(x.data(), y.data());
+    x1 = Simple16::encode(x.data(), y.data(), x.size());
+//    x1 = PForDelta::encode(x.data(), y.data());
   time_t t1 = time(NULL);
   printf("encode time: %ld, ints used %d\n", t1 - t0, x1);
 
 
   for (size_t i = 0; i<N; ++i) 
-    x2 = PForDelta::decode(y.data(), z.data());
+    x2 = Simple16::decode(y.data(), z.data(), x.size());
+//    x2 = PForDelta::decode(y.data(), z.data());
   time_t t2 = time(NULL);
   printf("decode time: %ld, ints used %d\n", t2 - t1, x2);
 

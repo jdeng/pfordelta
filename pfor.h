@@ -2,6 +2,7 @@
 
 class Simple16
 {
+public:
   static int encode(const uint32_t *in, uint32_t *out, int size);
   static int decode(const uint32_t *in, uint32_t *out, int size);
 };
