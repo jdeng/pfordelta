@@ -1,6 +1,9 @@
 // PforDelta / S16 in C++ 11
 // Copyright (C) 2014 Jack Deng <jackdeng@gmail.com>
 // MIT LICENSE
+//
+// partially based on https://code.google.com/p/poly-ir-toolkit/source/browse/#svn%2Fbranches%2Fwei%2Fsrc%2Fcompression_toolkit
+// rewritten with templates
 
 #include <functional>
 #include <algorithm>
