@@ -375,7 +375,7 @@ int main(int, const char *[])
   for (size_t i = 0; i<N; ++i) 
     n = PForDelta::encode(x.data(), y.data());
   time_t t3 = time(NULL);
-  printf("pfor decode time: %ld, ints used %d\n", t3 - t2, n);
+  printf("pfor encode time: %ld, ints used %d\n", t3 - t2, n);
 
   for (size_t i = 0; i<N; ++i) 
     n = PForDelta::decode(y.data(), z.data());
